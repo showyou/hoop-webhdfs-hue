@@ -25,6 +25,75 @@ Hoop, Hadoop HDFS over HTTP ${project.version} - HTTP REST API
 
   \[ {{{index.html}Go Back}} \]
 
+* Security
+
+  Hoop enforces authentication using {{{http://github.com/cloudera/alfredo}Alfredo}}.
+  Out of the box Alfredo supports both pseudo authentication and Kerberos HTTP
+  SPNEGO authentication.
+
+** Pseudo Authentication
+
+  With pseudo authentication the user name must be specified in the
+  <<<user.name=\<USERNAME\>>>> query string parameter of a Hoop URL.
+  For example:
+
++---+
+$ curl "http://<HOOP_HOST>:14000?op=homedir&user.name=babu"
++---+
+
+** Kerberos HTTP SPNEGO Authentication
+
+  Kerberos HTTP SPENGO authentication requires a tool or library supporting
+  Kerberos HTTP SPNEGO protocol.
+
+  IMPORTANT: If using <<<curl>>>, the <<<curl>>> version being used must support
+  GSS (<<<curl -V>>> prints out 'GSS' if it supports it).
+
+  For example:
+
++---+
+$ kinit
+Please enter the password for tucu@LOCALHOST:
+$ curl --negotiate -u foo "http://<HOOP_HOST>:14000?op=homedir"
+Enter host password for user 'foo':
++---+
+
+  NOTE: the <<<-u USER>>> option is required by the <<<--negotiate>>> but it is
+  not used. Use any value as <<<USER>>> and when asked for the password press
+  [ENTER] as the password value is ignored.
+
+** {Remembering Who I Am} (Establishing an Authenticated Session)
+
+  As most authentication mechanisms, Alfredo authenticates users once and issues
+  a short-lived authentication token to be presented in subsequent requests. This
+  authentication token is a signed HTTP Cookie.
+
+  When using tools like <<<curl>>>, the authentication token must be stored on
+  the first request doing authentication, and submitted in subsequent requests.
+  To do this with curl the <<<-b>>> and <<<-c>>> options to save and send HTTP
+  Cookies must be used.
+
+  For example, the first request doing authentication should save the received
+  HTTP Cookies.
+
+    Using Pseudo Authentication:
+
++---+
+$ curl -b ~/.hoopauth "http://<HOOP_HOST>:14000?op=homedir&user.name=babu"
++---+
+
+    Using Kerberos HTTP SPNEGO authentication:
+
++---+
+$ curl --negotiate -u foo -b ~/.hoopauth "http://<HOOP_HOST>:14000?op=homedir"
++---+
+
+  Then, subsequent requests forward the previously received HTTP Cookie:
+
++---+
+$ curl -c ~/.hoopauth "http://<HOOP_HOST>:14000?op=list"
++---+
+
 * File System Operations
 
   The HTTP REST API is fully demonstrated below using the Unix <<<curl>>>
@@ -37,54 +106,15 @@ Hoop, Hadoop HDFS over HTTP ${project.version} - HTTP REST API
   For optional parameters, the default values are between '*', for example
   'overwrite=*true*|false'.
 
-** Security
-
-*** Hadoop Pseudo Authentication
-
-  If using Hadoop pseudo authentication the user must be specified with the
-  <<<user.name=\<USERNAME\>>>> query string parameter and the
-  <<<-b ~/.hoopauth -c ~/.hoopauth>>> options.
-
-  The <<<-b ~/.hoopauth -c ~/.hoopauth>>> options must be used with every
-  <<<curl>>> invocation.
-
-*** Hadoop Kerberos SPNEGO Authentication
-
-  If using Kerberos SPNEGO authentication the  <<<curl>>> version must support
-  GSS. Run <<<curl -V>>> to see if the installed version of <<<curl>>> supports
-  GSS.
-
-  The <<<--negotiate -u foo -b ~/.hoopauth -c ~/.hoopauth>>> options
-  must be used with every <<<curl>>> invocation.
-
-  <<For example:>>
-
-  Login to the KDC using <<<kinit>>>, then use <<<curl>>> to access a file via
-  the Hoop Server:
-
-+---+
-$ kinit
-Please enter the password for tucu@LOCALHOST:
-$ curl --negotiate -u foo -b ~/.hoopauth -c ~/.hoopauth http://<HOOP_HOST>:14000/user/foo/hello.txt
-Enter host password for user 'foo':
-
-Hello Hoop!
-+---+
-
-  * The <<<--negotiate>>> option enables SPNEGO in curl.
-
-  * The <<<-u>>> foo option is required but the user ignored (the principal
-    that has been kinit-ed is used).
-
-  * The <<<-b>>> and <<<-c>>> are use to store and send HTTP Cookies (this
-    prevents subsequent calls to do the SPNEGO authentication sequence).
+  All the Examples below assume the User is already already authenticated, refer to the
+  {{{Remembering_Who_I_Am}Remembering Who I Am}} section.
 
 ** Read File
 
   HTTP Request:
 
 +---+
-$ curl -X GET -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>[?<OPTION>[&<OPTION>]*]"
+$ curl -X GET -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>[?<OPTION>[&<OPTION>]*]"
 +---+
 
   OPTIONS:
@@ -109,8 +139,8 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X POST -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=create[&<OPTION>]*" \
---data-binary @data.txt  --header "content-type: application/octet-stream"
+$ curl -X POST -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=create[&<OPTION>]*" \
+  --data-binary @data.txt  --header "content-type: application/octet-stream"
 +---+
 
   OPTIONS:
@@ -142,8 +172,8 @@ Content-Length: 0
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=append" \
---data-binary @data.txt --header "content-type: application/octet-stream"
+$ curl -X PUT -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=append" \
+  --data-binary @data.txt --header "content-type: application/octet-stream"
 +---+
 
   The content-type header must be specified othewise <<<curl>>> will use
@@ -165,7 +195,7 @@ Content-Length: 0
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<OLDPATH>?op=rename&to=<NEWPATH>"
+$ curl -X PUT -c ~/.hoopauth "http://<HOOP_HOST>:14000/<OLDPATH>?op=rename&to=<NEWPATH>"
 +---+
 
   Sucessful HTTP Response:
@@ -183,7 +213,8 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X DELETE -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=delete[&recursive=*true*|false]"
+$ curl -X DELETE -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<PATH>?op=delete[&recursive=*true*|false]"
 +---+
 
   Sucessful HTTP Response:
@@ -201,7 +232,7 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$curl -X GET -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=list[&filter=<FILTER>]"
+$curl -X GET -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=list[&filter=<FILTER>]"
 +---+
 
   If specifying a filter use Hadoop's GlobFilter syntax.
@@ -234,7 +265,8 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X POST -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=mkdirs[&permission=*default*|<-rwxrwxrw>]"
+$ curl -X POST -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<PATH>?op=mkdirs[&permission=*default*|<-rwxrwxrw>]"
 +---+
 
   Sucessful HTTP Response:
@@ -252,7 +284,7 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X GET -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=status"
+$ curl -X GET -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=status"
 +---+
 
   Sucessful HTTP Response:
@@ -281,7 +313,7 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X GET -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/?op=homedir"
+$ curl -X GET -c ~/.hoopauth "http://<HOOP_HOST>:14000/?op=homedir"
 +---+
 
   Sucessful HTTP Response:
@@ -299,7 +331,8 @@ Transfer-Encoding: chunked
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<OLDPATH>?op=setowner&owner=<OWNER>&group=<GROUP>"
+$ curl -X PUT -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<OLDPATH>?op=setowner&owner=<OWNER>&group=<GROUP>"
 +---+
 
   If 'owner' or 'group' are not specified, the current value is preserved.
@@ -318,7 +351,8 @@ Content-Length: 0
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=setpermission&permission=*default*|<-rwxrwxrw>"
+$ curl -X PUT -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<PATH>?op=setpermission&permission=*default*|<-rwxrwxrw>"
 +---+
 
   Sucessful HTTP Response:
@@ -335,7 +369,8 @@ Content-Length: 0
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=settimes&mtime=<LONG>&atime=<LONG>"
+$ curl -X PUT -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<PATH>?op=settimes&mtime=<LONG>&atime=<LONG>"
 +---+
 
   If 'mtime' or 'atime' are not specified, the current value is preserved.
@@ -354,7 +389,8 @@ Content-Length: 0
   HTTP Request:
 
 +---+
-$ curl -X PUT -b ~/.hoopauth -c ~/.hoopauth "http://<HOOP_HOST>:14000/<PATH>?op=setreplication&replication=<SHORT>"
+$ curl -X PUT -c ~/.hoopauth \
+  "http://<HOOP_HOST>:14000/<PATH>?op=setreplication&replication=<SHORT>"
 +---+
 
   If 'replication' is not set the default value is used.
