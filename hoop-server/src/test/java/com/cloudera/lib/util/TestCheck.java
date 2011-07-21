@@ -89,25 +89,25 @@ public class TestCheck extends XTest {
 
   @Test
   public void validIdentifierValid() throws Exception {
-    Assert.assertEquals(Check.validIdentifier("a", "", 1), "a");
-    Assert.assertEquals(Check.validIdentifier("a1", "", 2), "a1");
-    Assert.assertEquals(Check.validIdentifier("a_", "", 3), "a_");
-    Assert.assertEquals(Check.validIdentifier("_", "", 1), "_");
+    Assert.assertEquals(Check.validIdentifier("a", 1, ""), "a");
+    Assert.assertEquals(Check.validIdentifier("a1", 2, ""), "a1");
+    Assert.assertEquals(Check.validIdentifier("a_", 3, ""), "a_");
+    Assert.assertEquals(Check.validIdentifier("_", 1, ""), "_");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void validIdentifierInvalid1() throws Exception {
-    Check.validIdentifier("!", "", 1);
+    Check.validIdentifier("!", 1, "");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void validIdentifierInvalid2() throws Exception {
-    Check.validIdentifier("a1", "", 1);
+    Check.validIdentifier("a1", 1, "");
   }
 
   @Test(expectedExceptions = IllegalArgumentException.class)
   public void validIdentifierInvalid3() throws Exception {
-    Check.validIdentifier("1", "", 1);
+    Check.validIdentifier("1", 1, "");
   }
 
   @Test

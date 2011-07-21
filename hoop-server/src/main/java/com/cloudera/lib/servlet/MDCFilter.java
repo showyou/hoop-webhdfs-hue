@@ -26,12 +26,41 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.security.Principal;
 
+/**
+ * Filter that sets request contextual information for the slf4j MDC.
+ * <p/>
+ * It sets the following values:
+ * <ul>
+ *   <li>hostname: if the {@link HostnameFilter} is present and configured
+ *   before this filter</li>
+ *   <li>user: the <code>HttpServletRequest.getUserPrincipal().getName()</code></li>
+ *   <li>method: the HTTP method fo the request (GET, POST, ...)</li>
+ *   <li>path: the path of the request URL</li>
+ * </ul>
+ */
 public class MDCFilter implements Filter {
 
+  /**
+   * Initializes the filter.
+   * <p/>
+   * This implementation is a NOP.
+   *
+   * @param config filter configuration.
+   * @throws ServletException thrown if the filter could not be initialized.
+   */
   @Override
   public void init(FilterConfig config) throws ServletException {
   }
 
+  /**
+   * Sets the slf4j <code>MDC</code> and delegates the request to the chain.
+   *
+   * @param request servlet request.
+   * @param response servlet response.
+   * @param chain filter chain.
+   * @throws IOException thrown if an IO error occurrs.
+   * @throws ServletException thrown if a servet error occurrs.
+   */
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
     throws IOException, ServletException {
@@ -55,6 +84,11 @@ public class MDCFilter implements Filter {
     }
   }
 
+  /**
+   * Destroys the filter.
+   * <p/>
+   * This implementation is a NOP.
+   */
   @Override
   public void destroy() {
   }

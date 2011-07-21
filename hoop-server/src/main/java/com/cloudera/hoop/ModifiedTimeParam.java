@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.LongParam;
 
+/**
+ * Class for modified-time parameter.
+ */
 public class ModifiedTimeParam extends LongParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "mtime";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "-1";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public ModifiedTimeParam(String str) {
     super(NAME, str);
   }

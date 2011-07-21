@@ -25,11 +25,28 @@ import javax.ws.rs.ext.Provider;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+/**
+ * JAX-RS <code>ExceptionMapper</code> implementation that maps Hoop's
+ * exceptions to HTTP status codes.
+ */
 @Provider
 public class HoopExceptionProvider extends ExceptionProvider {
   private static Logger AUDIT_LOG = LoggerFactory.getLogger("hoopaudit");
   private static Logger LOG = LoggerFactory.getLogger(HoopExceptionProvider.class);
 
+  /**
+   * Maps different exceptions thrown by Hoop to HTTP status codes.
+   * <p/>
+   * <ul>
+   *   <li>SecurityException : HTTP UNAUTHORIZED</li>
+   *   <li>FileNotFoundException : HTTP NOT_FOUND</li>
+   *   <li>IOException : INTERNAL_HTTP SERVER_ERROR</li>
+   *   <li>UnsupporteOperationException : HTTP BAD_REQUEST</li>
+   *   <li>all other exceptions : HTTP INTERNAL_SERVER_ERROR </li>
+   * </ul>
+   * @param throwable exception thrown.
+   * @return mapped HTTP status code
+   */
   @Override
   public Response toResponse(Throwable throwable) {
     Response.Status status;
@@ -54,7 +71,12 @@ public class HoopExceptionProvider extends ExceptionProvider {
     return createResponse(status, throwable, false);
   }
 
-
+  /**
+   * Logs the HTTP status code and exception in Hoop's log.
+   *
+   * @param status HTTP status code.
+   * @param throwable exception thrown.
+   */
   @Override
   protected void log(Response.Status status, Throwable throwable) {
     String method = MDC.get("method");

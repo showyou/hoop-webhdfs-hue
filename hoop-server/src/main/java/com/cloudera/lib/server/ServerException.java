@@ -16,8 +16,14 @@ package com.cloudera.lib.server;
 
 import com.cloudera.lib.lang.XException;
 
+/**
+ * Exception thrown by the {@link Server} class.
+ */
 public class ServerException extends XException {
 
+  /**
+   * Error codes use by the {@link Server} class.
+   */
   public static enum ERROR implements XException.ERROR {
     S01("Dir [{0}] does not exist"),
     S02("[{0}] is not a directory"),
@@ -33,20 +39,46 @@ public class ServerException extends XException {
 
     private String msg;
 
+    /**
+     * Constructor for the error code enum.
+     *
+     * @param msg message template.
+     */
     private ERROR(String msg) {
       this.msg = msg;
     }
 
+    /**
+     * Returns the message template for the error code.
+     *
+     * @return the message template for the error code.
+     */
     @Override
     public String getTemplate() {
       return msg;
     }
   }
 
+  /**
+   * Constructor for sub-classes.
+   *
+   * @param error error code for the XException.
+   * @param params parameters to use when creating the error message
+   * with the error code template.
+   */
   protected ServerException(XException.ERROR error, Object... params) {
     super(error, params);
   }
 
+  /**
+   * Creates an server exception using the specified error code.
+   * The exception message is resolved using the error code template
+   * and the passed parameters.
+   *
+   * @param error error code for the XException.
+   * @param params parameters to use when creating the error message
+   * with the error code template.
+   */
   public ServerException(ERROR error, Object... params) {
     super(error, params);
   }

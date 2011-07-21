@@ -25,13 +25,40 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import java.io.IOException;
 
+/**
+ * The <code>FileSystemReleaseFilter</code> releases back to the
+ * {@link Hadoop} service a <code>FileSystem</code> instance.
+ * <p/>
+ * This filter is useful in situations where a servlet request
+ * is streaming out HDFS data and the corresponding filesystem
+ * instance have to be closed after the streaming completes.
+ */
 public abstract class FileSystemReleaseFilter implements Filter {
   private static final ThreadLocal<FileSystem> FILE_SYSTEM_TL = new ThreadLocal<FileSystem>();
 
+  /**
+   * Initializes the filter.
+   * <p/>
+   * This implementation is a NOP.
+   *
+   * @param filterConfig filter configuration.
+   * @throws ServletException thrown if the filter could not be initialized.
+   */
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
   }
 
+  /**
+   * It delegates the incoming request to the <code>FilterChain</code>, and
+   * at its completion (in a finally block) releases the filesystem instance
+   * back to the {@link Hadoop} service.
+   *
+   * @param servletRequest servlet request.
+   * @param servletResponse servlet response.
+   * @param filterChain filter chain.
+   * @throws IOException thrown if an IO error occurrs.
+   * @throws ServletException thrown if a servet error occurrs.
+   */
   @Override
   public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
     throws IOException, ServletException {
@@ -47,14 +74,32 @@ public abstract class FileSystemReleaseFilter implements Filter {
     }
   }
 
+  /**
+   * Destroys the filter.
+   * <p/>
+   * This implementation is a NOP.
+   */
   @Override
   public void destroy() {
   }
 
+  /**
+   * Static method that sets the <code>FileSystem</code> to release back to
+   * the {@link Hadoop} service on servlet request completion.
+   *
+   * @param fs fileystem instance.
+   */
   public static void setFileSystem(FileSystem fs) {
     FILE_SYSTEM_TL.set(fs);
   }
 
+  /**
+   * Abstract method to be implemetned by concrete implementations of the
+   * filter that return the {@link Hadoop} service to which the filesystem
+   * will be returned to.
+   *
+   * @return the Hadoop service.
+   */
   protected abstract Hadoop getHadoop();
 
 }

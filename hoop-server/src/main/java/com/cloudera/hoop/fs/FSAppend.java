@@ -18,21 +18,35 @@ import com.cloudera.lib.io.IOUtils;
 import com.cloudera.lib.service.Hadoop;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+/**
+ * Executor that performs an append Hadoop files system operation.
+ */
 public class FSAppend implements Hadoop.FileSystemExecutor<Void> {
   private InputStream is;
   private Path path;
 
+  /**
+   * Creates an Append executor.
+   * @param is input stream to append.
+   * @param path path of the file to append.
+   */
   public FSAppend(InputStream is, String path) {
     this.is = is;
     this.path = new Path(path);
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return void.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public Void execute(FileSystem fs) throws IOException {
     int bufferSize = fs.getConf().getInt("hoop.buffer.size", 4096);

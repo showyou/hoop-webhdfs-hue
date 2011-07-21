@@ -16,8 +16,20 @@ package com.cloudera.lib.server;
 
 import com.cloudera.lib.lang.XException;
 
+/**
+ * Exception thrown by {@link Service} implementations.
+ */
 public class ServiceException extends ServerException {
 
+  /**
+   * Creates an service exception using the specified error code.
+   * The exception message is resolved using the error code template
+   * and the passed parameters.
+   *
+   * @param error error code for the XException.
+   * @param params parameters to use when creating the error message
+   * with the error code template.
+   */
   public ServiceException(XException.ERROR error, Object... params) {
     super(error, params);
   }

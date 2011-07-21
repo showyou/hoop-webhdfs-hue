@@ -18,34 +18,83 @@ import com.cloudera.lib.util.Check;
 
 import java.text.MessageFormat;
 
+/**
+ * Generic exception that requires error codes and uses the a message
+ * template from the error code.
+ */
 public class XException extends Exception {
 
+  /**
+   * Interface to define error codes.
+   */
   public static interface ERROR {
 
+    /**
+     * Returns the template for the error.
+     *
+     * @return the template for the error, the template must be in JDK
+     * <code>MessageFormat</code> syntax (using {#} positional parameters).
+     */
     public String getTemplate();
 
   }
 
   private ERROR error;
 
+  /**
+   * Private constructor used by the public constructors.
+   * @param error error code.
+   * @param message error message.
+   * @param cause exception cause if any.
+   */
   private XException(ERROR error, String message, Throwable cause) {
     super(message, cause);
     this.error = error;
   }
 
+  /**
+   * Creates an XException using another XException as cause.
+   * <p/>
+   * The error code and error message are extracted from the cause.
+   * @param cause exception cause.
+   */
   public XException(XException cause) {
     this(cause.getError(), cause.getMessage(), cause);
   }
 
+  /**
+   * Creates an XException using the specified error code. The exception
+   * message is resolved using the error code template and the passed
+   * parameters.
+   *
+   * @param error error code for the XException.
+   * @param params parameters to use when creating the error message
+   * with the error code template.
+   */
   @SuppressWarnings({"ThrowableResultOfMethodCallIgnored"})
   public XException(ERROR error, Object... params) {
     this(Check.notNull(error, "error"), format(error, params), getCause(params));
   }
 
+  /**
+   * Returns the error code of the exception.
+   *
+   * @return the error code of the exception.
+   */
   public ERROR getError() {
     return error;
   }
 
+  /**
+   * Creates a message using a error message template and arguments.
+   * <p/>
+   * The template must be in JDK <code>MessageFormat</code> syntax
+   * (using {#} positional parameters).
+   *
+   * @param error error code, to get the template from.
+   * @param args arguments to use for creating the message.
+   * @return the resolved error message.
+   */
   private static String format(ERROR error, Object... args) {
     String template = error.getTemplate();
     if (template == null) {
@@ -58,6 +107,14 @@ public class XException extends Exception {
     return error + ": " + MessageFormat.format(error.getTemplate(), args);
   }
 
+  /**
+   * Returns the last parameter if it is an instance of <code>Throwable</code>
+   * returns it else it returns NULL.
+   *
+   * @param params parameters to look for a cause.
+   * @return the last parameter if it is an instance of <code>Throwable</code>
+   * returns it else it returns NULL.
+   */
   private static Throwable getCause(Object... params) {
     Throwable throwable = null;
     if (params != null && params.length > 0 && params[params.length - 1] instanceof Throwable) {

@@ -24,13 +24,35 @@ import javax.servlet.ServletResponse;
 import java.io.IOException;
 import java.net.InetAddress;
 
+/**
+ * Filter that resolves the requester hostname.
+ */
 public class HostnameFilter implements Filter {
   static final ThreadLocal<String> HOSTNAME_TL = new ThreadLocal<String>();
 
+  /**
+   * Initializes the filter.
+   * <p/>
+   * This implementation is a NOP.
+   *
+   * @param config filter configuration.
+   * @throws ServletException thrown if the filter could not be initialized.
+   */
   @Override
   public void init(FilterConfig config) throws ServletException {
   }
 
+  /**
+   * Resolves the requester hostname and delegates the request to the chain.
+   * <p/>
+   * The requester hostname is available via the {@link #get} method.
+   * 
+   * @param request servlet request.
+   * @param response servlet response.
+   * @param chain filter chain.
+   * @throws IOException thrown if an IO error occurrs.
+   * @throws ServletException thrown if a servet error occurrs.
+   */
   @Override
   public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
     throws IOException, ServletException {
@@ -44,10 +66,19 @@ public class HostnameFilter implements Filter {
     }
   }
 
+  /**
+   * Returns the requester hostname.
+   * @return  the requester hostname.
+   */
   public static String get() {
     return HOSTNAME_TL.get();
   }
 
+  /**
+   * Destroys the filter.
+   * <p/>
+   * This implementation is a NOP.
+   */
   @Override
   public void destroy() {
   }

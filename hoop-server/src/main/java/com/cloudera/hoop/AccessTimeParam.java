@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.LongParam;
 
+/**
+ * Class for access-time parameter.
+ */
 public class AccessTimeParam extends LongParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "atime";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "-1";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public AccessTimeParam(String str) {
     super(NAME, str);
   }

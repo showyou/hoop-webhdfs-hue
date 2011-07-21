@@ -20,17 +20,34 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a set-times Hadoop files system operation.
+ */
 public class FSSetTimes implements Hadoop.FileSystemExecutor<Void> {
   private Path path;
   private long mTime;
   private long aTime;
 
+  /**
+   * Creates a set-times executor.
+   *
+   * @param path path to set the times.
+   * @param mTime modified time to set.
+   * @param aTime access time to set.
+   */
   public FSSetTimes(String path, long mTime, long aTime) {
     this.path = new Path(path);
     this.mTime = mTime;
     this.aTime = aTime;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return void.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public Void execute(FileSystem fs) throws IOException {
     fs.setTimes(path, mTime, aTime);

@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.LongParam;
 
+/**
+ * Class for block-size parameter.
+ */
 public class BlockSizeParam extends LongParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "blocksize";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "-1";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public BlockSizeParam(String str) {
     super(NAME, str);
   }

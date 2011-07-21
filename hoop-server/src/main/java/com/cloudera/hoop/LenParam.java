@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.LongParam;
 
+/**
+ * Class for len parameter.
+ */
 public class LenParam extends LongParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "len";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "-1";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public LenParam(String str) {
     super(NAME, str);
   }

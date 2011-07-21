@@ -18,14 +18,38 @@ import com.cloudera.lib.wsrs.StringParam;
 import com.cloudera.lib.wsrs.UserProvider;
 import org.slf4j.MDC;
 
+/**
+ * Class for do-as parameter.
+ */
 public class DoAsParam extends StringParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "doas";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public DoAsParam(String str) {
     super(NAME, str, UserProvider.USER_PATTERN);
   }
 
+  /**
+   * Delegates to parent and then adds do-as user to
+   * MDC context for logging purposes.
+   *
+   * @param name parameter name.
+   * @param str parameter value.
+   * @return parsed parameter
+   */
   @Override
   public String parseParam(String name, String str) {
     String doAs = super.parseParam(name, str);

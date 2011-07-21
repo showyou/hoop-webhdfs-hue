@@ -25,15 +25,32 @@ import org.json.simple.JSONArray;
 import java.io.IOException;
 import java.util.regex.Pattern;
 
+/**
+ * Executor that performs a list-status Hadoop files system operation.
+ */
 public class FSListStatus implements Hadoop.FileSystemExecutor<JSONArray>, PathFilter {
   private Path path;
   private PathFilter filter;
 
+  /**
+   * Creates a list-status executor.
+   *
+   * @param path the directory to retrieve the status of its contents.
+   * @param filter glob filter to use.
+   */
   public FSListStatus(String path, String filter) {
     this.path = new Path(path);
     this.filter = (filter == null) ? this : new GlobFilter(filter);
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return a JSONArray with the file status of the directory
+   * contents.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public JSONArray execute(FileSystem fs) throws IOException {
     FileStatus[] status = fs.listStatus(path, filter);
@@ -47,7 +64,7 @@ public class FSListStatus implements Hadoop.FileSystemExecutor<JSONArray>, PathF
   }
 
   /**
-   * Cut&Paste of Hadoop FileSystem.GlobFilter private class.
+   * Cut&Paste of Hadoop FileSystem.GlobFilter (it is a private class).
    */
   private static class GlobFilter implements PathFilter {
     private Pattern regex;

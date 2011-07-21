@@ -21,15 +21,32 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a rename Hadoop files system operation.
+ */
 public class FSRename implements Hadoop.FileSystemExecutor<JSONObject> {
   private Path path;
   private Path toPath;
 
+  /**
+   * Creates a rename executor.
+   *
+   * @param path path to rename.
+   * @param toPath new name.
+   */
   public FSRename(String path, String toPath) {
     this.path = new Path(path);
     this.toPath = new Path(toPath);
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return <code>true</code> if the rename operation was successful,
+   * <code>false</code> otherwise.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public JSONObject execute(FileSystem fs) throws IOException {
     boolean renamed = fs.rename(path, toPath);

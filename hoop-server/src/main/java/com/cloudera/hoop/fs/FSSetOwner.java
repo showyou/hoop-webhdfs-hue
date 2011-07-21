@@ -20,17 +20,34 @@ import org.apache.hadoop.fs.Path;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a set-owner Hadoop files system operation.
+ */
 public class FSSetOwner implements Hadoop.FileSystemExecutor<Void> {
   private Path path;
   private String owner;
   private String group;
 
+  /**
+   * Creates a set-owner executor.
+   *
+   * @param path the path to set the owner.
+   * @param owner owner to set.
+   * @param group group to set.
+   */
   public FSSetOwner(String path, String owner, String group) {
     this.path = new Path(path);
     this.owner = owner;
     this.group = group;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return void.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public Void execute(FileSystem fs) throws IOException {
     fs.setOwner(path, owner, group);

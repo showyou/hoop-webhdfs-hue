@@ -35,13 +35,65 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * A Server class provides standard configuration, logging and {@link Service}
+ * lifecyle management.
+ * <p/>
+ * A Server normally has a home directory, a configuration directory, a temp
+ * directory and logs directory.
+ * <p/>
+ * The Server configuration is loaded from 2 overlapped files,
+ * <code>#SERVER#-default.xml</code> and <code>#SERVER#-site.xml</code>. The
+ * default file is loaded from the classpath, the site file is laoded from the
+ * configuration directory.
+ * <p/>
+ * The Server collects all configuration properties prefixed with
+ * <code>#SERVER#</code>. The property names are then trimmed from the
+ * <code>#SERVER#</code> prefix.
+ * <p/>
+ * The Server log configuration is loaded from the
+ * <code>#SERVICE#-log4j.properties</code> file in the configuration directory.
+ * <p/>
+ * The lifecycle of server is defined in by {@link Server.Status} enum.
+ * When a server is create, its status is UNDEF, when being initialized it is
+ * BOOTING, once initialization is complete by default transitions to NORMAL.
+ * The <code>#SERVER#.startup.status</code> configuration property can be used
+ * to specify a different startup status (NORMAL, ADMIN or HALTED).
+ * <p/>
+ * Services classes are defined in the <code>#SERVER#.services</code> and
+ * <code>#SERVER#.services.ext</code> properties. They are loaded in order
+ * (services first, then services.ext).
+ * <p/>
+ * Before initializing the services, they are traversed and duplicate service
+ * interface are removed from the service list. The last service using a given
+ * interface wins (this enables a simple override mechanism).
+ * <p/>
+ * After the services have been resoloved by interface de-duplication they are
+ * initialized in order. Once all services are initialized they are
+ * post-initialized (this enables late/conditional service bindings).
+ * <p/>
+ */
 public class Server {
   private Logger log;
 
+  /**
+   * Server property name that defines the service classes.
+   */
   public static final String CONF_SERVICES = "services";
+
+  /**
+   * Server property name that defines the service extension classes.
+   */
   public static final String CONF_SERVICES_EXT = "services.ext";
+
+  /**
+   * Server property name that defines server startup status.
+   */
   public static final String CONF_STARTUP_STATUS = "startup.status";
 
+  /**
+   * Enumeration that defines the server status.
+   */
   public enum Status {
     UNDEF(false, false),
     BOOTING(false, true),
@@ -54,16 +106,33 @@ public class Server {
     private boolean settable;
     private boolean operational;
 
-    Status(boolean settable, boolean operational) {
+    /**
+     * Status constructor.
+     *
+     * @param settable indicates if the status is settable.
+     * @param operational indicates if the server is operational
+     * when in this status.
+     */
+    private Status(boolean settable, boolean operational) {
       this.settable = settable;
       this.operational = operational;
     }
 
+    /**
+     * Returns if this server status is operational.
+     *
+     * @return if this server status is operational.
+     */
     public boolean isOperational() {
       return operational;
     }
   }
 
+  /**
+   * Name of the log4j configuration file the Server will load from the
+   * classpath if the <code>#SERVER#-log4j.properties</code> is not defined
+   * in the server configuration directory.
+   */
   public static final String DEFAULT_LOG4J_PROPERTIES = "default-log4j.properties";
 
   private Status status;
@@ -75,18 +144,58 @@ public class Server {
   private XConfiguration config;
   private Map<Class, Service> services = new LinkedHashMap<Class, Service>();
 
+  /**
+   * Creates a server instance.
+   * <p/>
+   * The config, log and temp directories are all under the specified home directory.
+   *
+   * @param name server name.
+   * @param homeDir server home directory.
+   */
   public Server(String name, String homeDir) {
     this(name, homeDir, null);
   }
 
+  /**
+   * Creates a server instance.
+   *
+   * @param name server name.
+   * @param homeDir server home directory.
+   * @param configDir config directory.
+   * @param logDir log directory.
+   * @param tempDir temp directory.
+   */
   public Server(String name, String homeDir, String configDir, String logDir, String tempDir) {
     this(name, homeDir, configDir, logDir, tempDir, null);
   }
 
+  /**
+   * Creates a server instance.
+   * <p/>
+   * The config, log and temp directories are all under the specified home directory.
+   * <p/>
+   * It uses the provided configuration instead loading it from the config dir.
+   *
+   * @param name server name.
+   * @param homeDir server home directory.
+   * @param config server configuration.
+   */
   public Server(String name, String homeDir, XConfiguration config) {
     this(name, homeDir, homeDir + "/conf", homeDir + "/log", homeDir + "/temp", config);
   }
 
+  /**
+   * Creates a server instance.
+   * <p/>
+   * It uses the provided configuration instead loading it from the config dir.
+   *
+   * @param name server name.
+   * @param homeDir server home directory.
+   * @param configDir config directory.
+   * @param logDir log directory.
+   * @param tempDir temp directory.
+   * @param config server configuration.
+   */
   public Server(String name, String homeDir, String configDir, String logDir, String tempDir, XConfiguration config) {
     this.name = Check.notEmpty(name, "name").trim().toLowerCase();
     this.homeDir = Check.notEmpty(homeDir, "homeDir");
@@ -104,6 +213,16 @@ public class Server {
     status = Status.UNDEF;
   }
 
+  /**
+   * Validates that the specified value is an absolute path (starts with '/').
+   *
+   * @param value value to verify it is an absolute path.
+   * @param name name to use in the exception if the value is not an aboslute
+   * path.
+   * @return the value.
+   * @throws IllegalArgumentException thrown if the value is not an absolute
+   * path.
+   */
   private String checkAbsolutePath(String value, String name) {
     if (!value.startsWith("/")) {
       throw new IllegalArgumentException(
@@ -112,10 +231,28 @@ public class Server {
     return value;
   }
 
+  /**
+   * Returns the current server status.
+   *
+   * @return the current server status.
+   */
   public Status getStatus() {
     return status;
   }
 
+  /***
+   * Sets a new server status.
+   * <p/>
+   * The status must be settable.
+   * <p/>
+   * All services will be notified o the status change via the
+   * {@link Service#serverStatusChange(Status, Status)} method. If a service
+   * throws an exception during the notification, the server will be destroyed.
+   *
+   * @param status status to set.
+   * @throws ServerException thrown if the service has been destroy because of
+   * a failed notification to a service.
+   */
   public void setStatus(Status status) throws ServerException {
     Check.notNull(status, "status");
     if (status.settable) {
@@ -141,12 +278,37 @@ public class Server {
     }
   }
 
+  /**
+   * Verifies the server is operational.
+   *
+   * @throws IllegalStateException thrown if the server is not operational.
+   */
   protected void ensureOperational() {
     if (!getStatus().isOperational()) {
       throw new IllegalStateException("Server is not running");
     }
   }
 
+  /**
+   * Initializes the Server.
+   * <p/>
+   * The initialization steps are:
+   * <ul>
+   *   <li>It verifies the service home and temp directories exist</li>
+   *   <li>Loads the Server <code>#SERVER#-default.xml</code>
+   *   configuration file from the classpath</li>
+   *   <li>Initializes log4j logging. If the
+   *   <code>#SERVER#-log4j.properties</code> file does not exist in the config
+   *   directory it load <code>default-log4j.properties</code> from the classpath
+   *   </li>
+   *   <li>Loads the <code>#SERVER#-site.xml</code> file from the server config
+   *   directory and merges it with the default configuration.</li>
+   *   <li>Loads the services</li>
+   *   <li>Initializes the services</li>
+   *   <li>Post-initializes the services</li>
+   *   <li>Sets the server startup status</li>
+   * @throws ServerException thrown if the server could not be initialized.
+   */
   public void init() throws ServerException {
     if (status != Status.UNDEF) {
       throw new IllegalStateException("Server already initialized");
@@ -195,6 +357,13 @@ public class Server {
     log.info("Server [{}] started!, status [{}]", name, status);
   }
 
+  /**
+   * Verifies the specified directory exists.
+   *
+   * @param dir directory to verify it exists.
+   * @throws ServerException thrown if the directory does not exist or it the
+   * path it is not a directory.
+   */
   private void verifyDir(String dir) throws ServerException {
     File file = new File(dir);
     if (!file.exists()) {
@@ -205,6 +374,11 @@ public class Server {
     }
   }
 
+  /**
+   * Initializes Log4j logging.
+   *
+   * @throws ServerException thrown if Log4j could not be initialized.
+   */
   protected void initLog() throws ServerException {
     verifyDir(logDir);
     LogManager.resetConfiguration();
@@ -228,6 +402,10 @@ public class Server {
     }
   }
 
+  /**
+   * Loads and inializes the server configuration.
+   * @throws ServerException thrown if the configuration could not be loaded/initialized.
+   */
   protected void initConfig() throws ServerException {
     verifyDir(configDir);
     File file = new File(configDir);
@@ -299,6 +477,14 @@ public class Server {
     log.debug("------------------------------------------------------");
   }
 
+  /**
+   * Loads the specified services.
+   *
+   * @param classes services classes to load.
+   * @param list list of loaded service in order of appearance in the
+   * configuration.
+   * @throws ServerException thrown if a service class could not be loaded.
+   */
   private void loadServices(Class[] classes, List<Service> list) throws ServerException {
     for (Class klass : classes) {
       try {
@@ -319,6 +505,13 @@ public class Server {
     }
   }
 
+  /**
+   * Loads services defined in <code>services</code> and
+   * <code>services.ext</code> and de-dups them.
+   *
+   * @return List of final services to initialize.
+   * @throws ServerException throw if the services could not be loaded.
+   */
   protected List<Service> loadServices() throws ServerException {
     try {
       Map<Class, Service> map = new LinkedHashMap<Class, Service>();
@@ -347,6 +540,13 @@ public class Server {
     }
   }
 
+  /**
+   * Initializes the list of services.
+   *
+   * @param services services to initialized, it must be a de-dupped list of
+   * services.
+   * @throws ServerException thrown if the services could not be initialized.
+   */
   protected void initServices(List<Service> services) throws ServerException {
     for (Service service : services) {
       log.debug("Initializing service [{}]", service.getInterface());
@@ -359,6 +559,12 @@ public class Server {
     }
   }
 
+  /**
+   * Checks if all service dependencies of a service are available.
+   *
+   * @param service service to check if all its dependencies are available.
+   * @throws ServerException thrown if a service dependency is missing.
+   */
   protected void checkServiceDependencies(Service service) throws ServerException {
     if (service.getServiceDependencies() != null) {
       for (Class dependency : service.getServiceDependencies()) {
@@ -369,6 +575,9 @@ public class Server {
     }
   }
 
+  /**
+   * Destroys the server services.
+   */
   protected void destroyServices() {
     List<Service> list = new ArrayList<Service>(services.values());
     Collections.reverse(list);
@@ -385,6 +594,12 @@ public class Server {
     log.info("Services destroyed");
   }
 
+  /**
+   * Destroys the server.
+   * <p/>
+   * All services are destroyed in reverse order of initialization, then the
+   * Log4j framework is shutdown.
+   */
   public void destroy() {
     ensureOperational();
     destroyServices();
@@ -396,39 +611,87 @@ public class Server {
     status = Status.SHUTDOWN;
   }
 
+  /**
+   * Returns the name of the server.
+   *
+   * @return the server name.
+   */
   public String getName() {
     return name;
   }
 
+  /**
+   * Returns the server prefix for server configuration properties.
+   * <p/>
+   * By default it is the server name.
+   *
+   * @return the prefix for server configuration properties.
+   */
   public String getPrefix() {
     return getName();
   }
 
+  /**
+   * Returns the prefixed name of a server property.
+   *
+   * @param name of the property.
+   * @return prefixed name of the property.
+   */
   public String getPrefixedName(String name) {
     return getPrefix() + "." + Check.notEmpty(name, "name");
   }
 
+  /**
+   * Returns the server home dir.
+   *
+   * @return the server home dir.
+   */
   public String getHomeDir() {
     return homeDir;
   }
 
+  /**
+   * Returns the server config dir.
+   *
+   * @return the server config dir.
+   */
   public String getConfigDir() {
     return configDir;
   }
 
+  /**
+   * Returns the server log dir.
+   *
+   * @return the server log dir.
+   */
   public String getLogDir() {
     return logDir;
   }
 
+  /**
+   * Returns the server temp dir.
+   *
+   * @return the server temp dir.
+   */
   public String getTempDir() {
     return tempDir;
   }
 
+  /**
+   * Returns the server configuration.
+   * @return
+   */
   public XConfiguration getConfig() {
     return config;
 
   }
 
+  /**
+   * Returns the {@link Service} associated to the specified interface.
+   *
+   * @param serviceKlass service interface.
+   * @return the service implementation.
+   */
   @SuppressWarnings("unchecked")
   public <T> T get(Class<T> serviceKlass) {
     ensureOperational();
@@ -436,6 +699,18 @@ public class Server {
     return (T) services.get(serviceKlass);
   }
 
+  /**
+   * Adds a service programmatically.
+   * <p/>
+   * If a service with the same interface exists, it will be destroyed and
+   * removed before the given one is initialized and added.
+   * <p/>
+   * If an exception is thrown the server is destroyed.
+   * 
+   * @param klass service class to add.
+   * @throws ServerException throw if the service could not initialized/added
+   * to the server.
+   */
   public void setService(Class<? extends Service> klass) throws ServerException {
     ensureOperational();
     Check.notNull(klass, "serviceKlass");

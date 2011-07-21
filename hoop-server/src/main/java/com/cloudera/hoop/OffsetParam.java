@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.LongParam;
 
+/**
+ * Class for offset parameter.
+ */
 public class OffsetParam extends LongParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "offset";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "0";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public OffsetParam(String str) {
     super(NAME, str);
   }

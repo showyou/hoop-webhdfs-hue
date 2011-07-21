@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.ShortParam;
 
+/**
+ * Class for replication parameter.
+ */
 public class ReplicationParam extends ShortParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "replication";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "-1";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public ReplicationParam(String str) {
     super(NAME, str);
   }

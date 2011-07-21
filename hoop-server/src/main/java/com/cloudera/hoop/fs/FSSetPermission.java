@@ -21,16 +21,32 @@ import org.apache.hadoop.fs.permission.FsPermission;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a set-permission Hadoop files system operation.
+ */
 public class FSSetPermission implements Hadoop.FileSystemExecutor<Void> {
 
   private Path path;
   private String permission;
 
+  /**
+   * Creates a set-permission executor.
+   *
+   * @param path path to set the permission.
+   * @param permission permission to set.
+   */
   public FSSetPermission(String path, String permission) {
     this.path = new Path(path);
     this.permission = permission;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return void.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public Void execute(FileSystem fs) throws IOException {
     FsPermission fsPermission = FSUtils.getPermission(permission);

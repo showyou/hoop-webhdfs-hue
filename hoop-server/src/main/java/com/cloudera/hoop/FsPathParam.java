@@ -16,12 +16,28 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.StringParam;
 
+/**
+ * Class for path parameter.
+ */
 public class FsPathParam extends StringParam {
 
+  /**
+   * Constructor.
+   *
+   * @param path parameter value.
+   */
   public FsPathParam(String path) {
     super("path", path);
   }
 
+  /**
+   * Makes the path absolute adding '/' to it.
+   * <p/>
+   * This is required because JAX-RS resolution of paths does not add
+   * the root '/'.
+   * 
+   * @returns absolute path.
+   */
   public void makeAbsolute() {
     String path = value();
     path = "/" + ((path != null) ? path : "");

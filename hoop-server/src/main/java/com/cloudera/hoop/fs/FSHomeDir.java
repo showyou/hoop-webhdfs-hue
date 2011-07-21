@@ -22,8 +22,18 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a home-dir Hadoop files system operation.
+ */
 public class FSHomeDir implements Hadoop.FileSystemExecutor<JSONObject> {
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return a JSON object with the user home directory.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   @SuppressWarnings("unchecked")
   public JSONObject execute(FileSystem fs) throws IOException {

@@ -16,15 +16,33 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.EnumParam;
 
+/**
+ * Class for GET operation parameter.
+ */
 public class GetOpParam extends EnumParam<GetOpParam.Values> {
 
+  /**
+   * Get operations.
+   */
   public enum Values {
     DATA, STATUS, LIST, HOMEDIR, INSTRUMENTATION
   }
 
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "op";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "data";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public GetOpParam(String str) {
     super(NAME, str, Values.class);
   }

@@ -16,14 +16,28 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.EnumParam;
 
+/**
+ * Class for PUT operation parameter.
+ */
 public class PutOpParam extends EnumParam<PutOpParam.Values> {
 
+  /**
+   * Put operations.
+   */
   public static enum Values {
     RENAME, SETOWNER, SETPERMISSION, SETREPLICATION, SETTIMES, APPEND
   }
 
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "op";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public PutOpParam(String str) {
     super(NAME, str, Values.class);
   }

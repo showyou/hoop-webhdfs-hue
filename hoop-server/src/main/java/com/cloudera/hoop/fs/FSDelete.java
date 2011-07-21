@@ -21,15 +21,32 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a delete Hadoop files system operation.
+ */
 public class FSDelete implements Hadoop.FileSystemExecutor<JSONObject> {
   private Path path;
   private boolean recursive;
 
+  /**
+   * Creates a Delete executor.
+   *
+   * @param path path to delete.
+   * @param recursive if the delete should be recursive or not.
+   */
   public FSDelete(String path, boolean recursive) {
     this.path = new Path(path);
     this.recursive = recursive;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return <code>true</code> if the delete operation was successful,
+   * <code>false</code> otherwise.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public JSONObject execute(FileSystem fs) throws IOException {
     boolean deleted = fs.delete(path, recursive);

@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.StringParam;
 
+/**
+ * Class for filter parameter.
+ */
 public class FilterParam extends StringParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "filter";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "";
 
+  /**
+   * Constructor.
+   *
+   * @param expr parameter value.
+   */
   public FilterParam(String expr) {
     super(NAME, expr);
   }

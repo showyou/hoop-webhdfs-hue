@@ -26,6 +26,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 
+/**
+ * Executor that performs a create Hadoop files system operation.
+ */
 public class FSCreate implements Hadoop.FileSystemExecutor<URI> {
   private InputStream is;
   private Path path;
@@ -34,6 +37,16 @@ public class FSCreate implements Hadoop.FileSystemExecutor<URI> {
   private short replication;
   private long blockSize;
 
+  /**
+   * Creates a Create executor.
+   *
+   * @param is input stream to for the file to create.
+   * @param path path of the file to create.
+   * @param perm permission for the file.
+   * @param override if the file should be overriden if it already exist.
+   * @param repl the replication factor for the file.
+   * @param blockSize the block size for the file.
+   */
   public FSCreate(InputStream is, String path, String perm, boolean override, short repl, long blockSize) {
     this.is = is;
     this.path = new Path(path);
@@ -43,6 +56,13 @@ public class FSCreate implements Hadoop.FileSystemExecutor<URI> {
     this.blockSize = blockSize;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return The URI of the created file.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public URI execute(FileSystem fs) throws IOException {
     if (replication == -1) {

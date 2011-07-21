@@ -17,10 +17,26 @@ package com.cloudera.hoop;
 import com.cloudera.lib.wsrs.StringParam;
 import com.cloudera.lib.wsrs.UserProvider;
 
+/**
+ * Class for group parameter.
+ */
 public class GroupParam extends StringParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "group";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public GroupParam(String str) {
     super(NAME, str, UserProvider.USER_PATTERN);
   }

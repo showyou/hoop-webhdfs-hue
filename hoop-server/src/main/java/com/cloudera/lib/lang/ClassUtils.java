@@ -33,8 +33,17 @@ import java.util.Enumeration;
 import java.util.jar.JarOutputStream;
 import java.util.jar.Manifest;
 
+/**
+ * Class related utilities.
+ */
 public class ClassUtils {
 
+  /**
+   * Finds the JAR file containing a class.
+   *
+   * @param klass class to find its JAR.
+   * @return the path to the JAR.
+   */
   public static String getJar(Class klass) {
     Check.notNull(klass, "klass");
     ClassLoader loader = klass.getClassLoader();
@@ -60,6 +69,17 @@ public class ClassUtils {
     return null;
   }
 
+  /**
+   * Convenience method that returns a resource as inputstream from the
+   * classpath.
+   * <p/>
+   * It first attempts to use the Thread's context classloader and if not
+   * set it uses the <code>ClassUtils</code> classloader.
+   *
+   * @param name resource to retrieve.
+   * @return inputstream with the resource, NULL if the resource does not
+   * exist.
+   */
   public static InputStream getResource(String name) {
     Check.notEmpty(name, "name");
     ClassLoader cl = Thread.currentThread().getContextClassLoader();
@@ -69,6 +89,13 @@ public class ClassUtils {
     return cl.getResourceAsStream(name);
   }
 
+  /**
+   * Creates a JAR file with the specified classes.
+   *
+   * @param jarFile jar file path.
+   * @param classes classes to add to the JAR.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void createJar(File jarFile, Class... classes) throws IOException {
     Check.notNull(jarFile, "jarFile");
     File jarDir = jarFile.getParentFile();
@@ -80,6 +107,13 @@ public class ClassUtils {
     createJar(new FileOutputStream(jarFile), classes);
   }
 
+  /**
+   * Writes the specified classes to an outputstream.
+   *
+   * @param os outputstream to write the classes to.
+   * @param classes classes to write to the outputstream.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void createJar(OutputStream os, Class... classes) throws IOException {
     Check.notNull(os, "os");
     File classesDir = File.createTempFile("createJar", "classes");
@@ -108,7 +142,18 @@ public class ClassUtils {
     IOUtils.delete(classesDir);
   }
 
-  public static Method findMethod(String className, String methodName) throws ServiceException {
+  /**
+   * Finds a public-static method by name in a class.
+   * <p/>
+   * In case of method overloading it will return the first method found.
+   *
+   * @param className name to look for the method.
+   * @param methodName method name to look in the class.
+   * @return the <code>Method</code> instance.
+   * @throws IllegalArgumentException thrown if the method does not exist,
+   * it is not public or it is not static.
+   */
+  public static Method findMethod(String className, String methodName) {
     Check.notEmpty(className, "className");
     Check.notEmpty(methodName, "methodName");
     Method method = null;
@@ -135,6 +180,16 @@ public class ClassUtils {
     return method;
   }
 
+  /**
+   * Finds a constant by name in a class.
+   * <p/>
+   *
+   * @param className name to look for the method.
+   * @param constantName constant name to look in the class.
+   * @return the constant instance.
+   * @throws IllegalArgumentException thrown if the constant does not exist,
+   * it is not public or it is not static.
+   */
   public static Object findConstant(String className, String constantName) throws ServiceException {
     Check.notEmpty(className, "className");
     Check.notEmpty(constantName, "constantName");

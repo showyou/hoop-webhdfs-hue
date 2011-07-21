@@ -16,15 +16,33 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.EnumParam;
 
+/**
+ * Class for POST operation parameter.
+ */
 public class PostOpParam extends EnumParam<PostOpParam.Values> {
 
+  /**
+   * Post operations.
+   */
   public static enum Values {
     CREATE, MKDIRS
   }
 
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "op";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "create";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public PostOpParam(String str) {
     super(NAME, str, Values.class);
   }

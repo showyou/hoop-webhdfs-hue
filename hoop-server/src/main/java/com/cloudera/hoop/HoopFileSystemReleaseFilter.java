@@ -17,8 +17,17 @@ package com.cloudera.hoop;
 import com.cloudera.lib.service.Hadoop;
 import com.cloudera.lib.servlet.FileSystemReleaseFilter;
 
+/**
+ * Filter that releases Hadoop filesystem instances upon HTTP request
+ * completion.
+ */
 public class HoopFileSystemReleaseFilter extends FileSystemReleaseFilter {
 
+  /**
+   * Returns the {@link Hadoop} service to return the Hadoop filesystem
+   * instance to.
+   * @return the Hadoop service.
+   */
   @Override
   protected Hadoop getHadoop() {
     return HoopServer.get().get(Hadoop.class);

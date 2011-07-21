@@ -65,10 +65,24 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Main class of Hoop server.
+ * <p/>
+ * The <code>Hoop</code> class uses Jersey JAX-RS to binds HTTP requests to the
+ * different operations.
+ */
 @Path("")
 public class Hoop {
   private static Logger AUDIT_LOG = LoggerFactory.getLogger("hoopaudit");
 
+  /**
+   * Returns an emtpy plain text response when a favicon is requested.
+   * <p/>
+   * This method exists to trap favicon requests done by browsers without
+   * hitting HDFS (and then returning a FILE_NOT_FOUND).
+   *
+   * @return an emtpy plain text response.
+   */
   @GET
   @Path("favicon.ico")
   @Produces(MediaType.TEXT_PLAIN)
@@ -76,18 +90,51 @@ public class Hoop {
     return "";
   }
 
+  /**
+   * Special binding for '/' as it is not handled by the wildcard binding.
+   *
+   * @param user principal making the request.
+   * @param op GET operation, default value is {@link GetOpParam.Values#DATA}.
+   * @param filter Glob filter, default value is none. Used only if the
+   * operation is {@link GetOpParam.Values#LIST}
+   * @param doAs user being impersonated, defualt value is none. It can be used
+   * only if the current user is a Hoop proxyuser.
+   * @return the request response
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   @GET
   @Path("/")
   @Produces(MediaType.APPLICATION_JSON)
   public Response root(@Context Principal user,
-                       @QueryParam(GetOpParam.NAME) @DefaultValue(GetOpParam.DEFAULT) GetOpParam get,
+                       @QueryParam(GetOpParam.NAME) @DefaultValue(GetOpParam.DEFAULT) GetOpParam op,
                        @QueryParam(FilterParam.NAME) @DefaultValue(FilterParam.DEFAULT) FilterParam filter,
                        @QueryParam(DoAsParam.NAME) @DefaultValue(DoAsParam.DEFAULT) DoAsParam doAs)
     throws IOException, HadoopException {
-    return get(user, new FsPathParam(""), get, new OffsetParam(OffsetParam.DEFAULT),
+    return get(user, new FsPathParam(""), op, new OffsetParam(OffsetParam.DEFAULT),
                new LenParam(LenParam.DEFAULT), filter, doAs);
   }
 
+  /**
+   * Resolves the effective user that will be used to request a Hadoop filesystem.
+   * <p/>
+   * If the doAs-user is NULL or the same as the user, it returns the user.
+   * <p/>
+   * Otherwise it uses proxyuser rules (see {@link ProxyUser} to determine if the
+   * current user can impersonate the doAs-user.
+   * <p/>
+   * If the current user cannot impersonate the doAs-user an
+   * <code>AccessControlException</code> will be thrown.
+   *
+   * @param user principal for whom the filesystem instance is.
+   * @param doAs do-as user, if any.
+   * @return the effective user.
+   * @throws IOException thrown if an IO error occurrs.
+   * @throws AccessControlException thrown if the current user cannot impersonate
+   * the doAs-user.
+   */
   private String getEffectiveUser(Principal user, String doAs) throws IOException {
     String effectiveUser = user.getName();
     if (doAs != null && !doAs.equals(user.getName())) {
@@ -99,6 +146,17 @@ public class Hoop {
     return effectiveUser;
   }
 
+  /**
+   * Executes a {@link Hadoop.FileSystemExecutor} using a filesystem for the effective
+   * user.
+   * @param user principal making the request.
+   * @param doAs do-as user, if any.
+   * @param executor FileSystemExecutor to execute.
+   * @return  FileSystemExecutor response
+   * @throws IOException thrown if an IO error occurrs.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   private <T> T fsExecute(Principal user, String doAs, Hadoop.FileSystemExecutor<T> executor)
     throws IOException, HadoopException {
     String hadoopUser = getEffectiveUser(user, doAs);
@@ -107,6 +165,21 @@ public class Hoop {
     return hadoop.execute(hadoopUser, conf, executor);
   }
 
+  /**
+   * Returns a filesystem instance. The fileystem instance is wired for release at the completion of
+   * the current Servlet request via the {@link FileSystemReleaseFilter}.
+   * <p/>
+   * If a do-as user is specified, the current user must be a valid proxyuser, otherwise an
+   * <code>AccessControlException</code> will be thrown.
+   *
+   * @param user principal for whom the filesystem instance is.
+   * @param doAs do-as user, if any.
+   * @return a filesystem for the specified user or do-as user.
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   private FileSystem createFileSystem(Principal user, String doAs) throws IOException, HadoopException {
     String hadoopUser = getEffectiveUser(user, doAs);
     Hadoop hadoop = HoopServer.get().get(Hadoop.class);
@@ -116,6 +189,31 @@ public class Hoop {
     return fs;
   }
 
+  /**
+   * Binding to handle all GET requests, supported operations are
+   * {@link GetOpParam.Values}.
+   * <p/>
+   * The {@link GetOpParam.Values#INSTRUMENTATION} operation is available only
+   * to users that are in Hoop's admin group (see {@link HoopServer}. It returns
+   * Hoop instrumentation data. The specified path must be '/'.
+   *
+   * @param user principal making the request.
+   * @param path path for the GET request.
+   * @param op GET operation, default value is {@link GetOpParam.Values#DATA}.
+   * @param offset of the  file being fetch, used only with
+   * {@link GetOpParam.Values#DATA} operations.
+   * @param len amounts of bytes, used only with {@link GetOpParam.Values#DATA}
+   * operations.
+   * @param filter Glob filter, default value is none. Used only if the
+   * operation is {@link GetOpParam.Values#LIST}
+   * @param doAs user being impersonated, defualt value is none. It can be used
+   * only if the current user is a Hoop proxyuser.
+   * @return the request response.
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   @GET
   @Path("{path:.*}")
   @Produces({MediaType.APPLICATION_OCTET_STREAM, MediaType.APPLICATION_JSON})
@@ -188,6 +286,20 @@ public class Hoop {
     return response;
   }
 
+  /**
+   * Binding to handle all DELETE requests.
+   *
+   * @param user principal making the request.
+   * @param path path for the DELETE request.
+   * @param recursive indicates if the delete is recursive, default is <code>false</code>
+   * @param doAs user being impersonated, defualt value is none. It can be used
+   * only if the current user is a Hoop proxyuser.
+   * @return the request response.
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   @DELETE
   @Path("{path:.*}")
   @Produces(MediaType.APPLICATION_JSON)
@@ -206,6 +318,38 @@ public class Hoop {
   }
 
 
+  /**
+   * Binding to handle all PUT requests, supported operations are
+   * {@link PutOpParam.Values}.
+   *
+   * @param is request input stream, used only for
+   * {@link PutOpParam.Values#APPEND} operations.
+   * @param user principal making the request.
+   * @param path path for the PUT request.
+   * @param op PUT operation, no default value.
+   * @param toPath new path, used only for
+   * {@link PutOpParam.Values#RENAME} operations.
+   * {@link PutOpParam.Values#SETTIMES}.
+   * @param owner owner to set, used only for
+   * {@link PutOpParam.Values#SETOWNER} operations.
+   * @param group group to set, used only for
+   * {@link PutOpParam.Values#SETOWNER} operations.
+   * @param permission permission to set, used only by
+   * {@link PutOpParam.Values#SETPERMISSION}.
+   * @param replication replication factor to set, used only by
+   * {@link PutOpParam.Values#SETREPLICATION}.
+   * @param modifiedTime modified time, in seconds since EPOC, used only by
+   * {@link PutOpParam.Values#SETTIMES}.
+   * @param accessTime accessed time, in seconds since EPOC, used only by
+   * {@link PutOpParam.Values#SETTIMES}.
+   * @param doAs user being impersonated, defualt value is none. It can be used
+   * only if the current user is a Hoop proxyuser.
+   * @return the request response.
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   @PUT
   @Path("{path:.*}")
   @Consumes({"*/*"})
@@ -280,7 +424,30 @@ public class Hoop {
     return response;
   }
 
-
+  /**
+   * Binding to handle all OPST requests, supported operations are
+   * {@link PostOpParam.Values}.
+   *
+   * @param is request input stream, used only for
+   * {@link PostOpParam.Values#CREATE} operations.
+   * @param user principal making the request.
+   * @param path path for the POST request.
+   * @param op POST operation, default is {@link PostOpParam.Values#CREATE}.
+   * @param override, default is true. Used only for
+   * {@link PostOpParam.Values#CREATE} operations.
+   * @param replication replication factor to set, used only by
+   * {@link PostOpParam.Values#CREATE} operations.
+   * @param blockSize block size to set, used only by
+   * {@link PostOpParam.Values#CREATE} operations.
+   * @param permission permission to set.
+   * @param doAs user being impersonated, defualt value is none. It can be used
+   * only if the current user is a Hoop proxyuser.
+   * @return the request response.
+   * @throws IOException thrown if an IO error occurred. Thrown exceptions are
+   * handled by {@link HoopExceptionProvider}.
+   * @throws HadoopException thrwon if a Hadoop releated error occurred. Thrown
+   * exceptions are handled by {@link HoopExceptionProvider}.
+   */
   @POST
   @Path("{path:.*}")
   @Consumes({"*/*"})

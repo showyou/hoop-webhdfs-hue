@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.BooleanParam;
 
+/**
+ * Class for delete's recursive parameter.
+ */
 public class DeleteRecursiveParam extends BooleanParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "recursive";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "false";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public DeleteRecursiveParam(String str) {
     super(NAME, str);
   }

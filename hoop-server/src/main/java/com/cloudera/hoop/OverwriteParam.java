@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.BooleanParam;
 
+/**
+ * Class for overwrite parameter.
+ */
 public class OverwriteParam extends BooleanParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "overwrite";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "true";
 
+  /**
+   * Constructor.
+   *
+   * @param str parameter value.
+   */
   public OverwriteParam(String str) {
     super(NAME, str);
   }

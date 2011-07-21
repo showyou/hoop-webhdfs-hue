@@ -22,13 +22,28 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Executor that performs a open Hadoop files system operation.
+ */
 public class FSOpen implements Hadoop.FileSystemExecutor<InputStream> {
   private Path path;
 
+  /**
+   * Creates a open executor.
+   *
+   * @param path file to open.
+   */
   public FSOpen(String path) {
     this.path = new Path(path);
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return The inputstream of the file.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public InputStream execute(FileSystem fs) throws IOException {
     int bufferSize = HoopServer.get().getConfig().getInt("hoop.buffer.size", 4096);

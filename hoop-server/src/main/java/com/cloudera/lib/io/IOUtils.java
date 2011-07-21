@@ -30,6 +30,16 @@ import java.util.zip.ZipOutputStream;
 
 public abstract class IOUtils {
 
+  /**
+   * Deletes the specified path recursively.
+   * <p/>
+   * As a safety mechanism, it converts the specified file to an absolute
+   * path and it throws an exception if the path is shorter than 5 character
+   * (you dont want to delete things like /tmp, /usr, /etc, /var, /opt, /sbin, /dev).
+   *
+   * @param file path to delete.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void delete(File file) throws IOException {
     if (file.getAbsolutePath().length() < 5) {
       throw new IllegalArgumentException(
@@ -50,12 +60,30 @@ public abstract class IOUtils {
     }
   }
 
+  /**
+   * Copies an inputstream to an outputstream.
+   *
+   * @param is inputstream to copy.
+   * @param os target outputstream.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void copy(InputStream is, OutputStream os) throws IOException {
     Check.notNull(is, "is");
     Check.notNull(os, "os");
     copy(is, os, 0, -1);
   }
 
+  /**
+   * Copies a range of bytes from an inputstream to an outputstream.
+   *
+   * @param is inputstream to copy.
+   * @param os target outputstream.
+   * @param offset of the inputstream to start the copy from, the offset
+   * is relative to the current position.
+   * @param len length of the inputstream to copy, <code>-1</code> means
+   * until the end of the inputstream.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void copy(InputStream is, OutputStream os, long offset, long len) throws IOException {
     Check.notNull(is, "is");
     Check.notNull(os, "os");
@@ -95,12 +123,30 @@ public abstract class IOUtils {
     }
   }
 
+  /**
+   * Copies a reader to a writer.
+   *
+   * @param reader reader to copy.
+   * @param writer target writer.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void copy(Reader reader, Writer writer) throws IOException {
     Check.notNull(reader, "reader");
     Check.notNull(writer, "writer");
     copy(reader, writer, 0, -1);
   }
 
+  /**
+   * Copies a range of chars from a reader to a writer.
+   *
+   * @param reader reader to copy.
+   * @param writer target writer.
+   * @param offset of the reader to start the copy from, the offset
+   * is relative to the current position.
+   * @param len length of the reader to copy, <code>-1</code> means
+   * until the end of the reader.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void copy(Reader reader, Writer writer, long offset, long len) throws IOException {
     Check.notNull(reader, "reader");
     Check.notNull(writer, "writer");
@@ -141,6 +187,14 @@ public abstract class IOUtils {
     }
   }
 
+  /**
+   * Reads a reader into a string.
+   * <p/>
+   *
+   * @param reader reader to read.
+   * @return string with the contents of the reader.
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static String toString(Reader reader) throws IOException {
     Check.notNull(reader, "reader");
     StringWriter writer = new StringWriter();
@@ -149,6 +203,14 @@ public abstract class IOUtils {
   }
 
 
+  /**
+   * Zips the contents of a directory into a zip outputstream.
+   *
+   * @param dir directory contents to zip.
+   * @param relativePath relative path top prepend to all files in the zip.
+   * @param zos zip output stream
+   * @throws IOException thrown if an IO error occurred.
+   */
   public static void zipDir(File dir, String relativePath, ZipOutputStream zos) throws IOException {
     Check.notNull(dir, "dir");
     Check.notNull(relativePath, "relativePath");
@@ -157,6 +219,17 @@ public abstract class IOUtils {
     zos.close();
   }
 
+  /**
+   * This recursive method is used by the {@link #zipDir(File, String, ZipOutputStream)} method.
+   * <p/>
+   * A special handling is required for the start of the zip (via the start parameter).
+   * 
+   * @param dir directory contents to zip.
+   * @param relativePath relative path top prepend to all files in the zip.
+   * @param zos zip output stream
+   * @param start indicates if this invocation is the start of the zip.
+   * @throws IOException thrown if an IO error occurred.
+   */
   private static void zipDir(File dir, String relativePath, ZipOutputStream zos, boolean start) throws IOException {
     String[] dirList = dir.list();
     for (String aDirList : dirList) {

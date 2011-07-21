@@ -16,10 +16,26 @@ package com.cloudera.hoop;
 
 import com.cloudera.lib.wsrs.StringParam;
 
+/**
+ * Class for to-path parameter.
+ */
 public class ToPathParam extends StringParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "to";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = "";
 
+  /**
+   * Constructor.
+   *
+   * @param path parameter value.
+   */
   public ToPathParam(String path) {
     super(NAME, path);
   }

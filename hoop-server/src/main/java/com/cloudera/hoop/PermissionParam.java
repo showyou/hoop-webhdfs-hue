@@ -19,13 +19,33 @@ import com.cloudera.lib.wsrs.StringParam;
 
 import java.util.regex.Pattern;
 
+/**
+ * Class for permission parameter.
+ */
 public class PermissionParam extends StringParam {
+
+  /**
+   * Parameter name.
+   */
   public static final String NAME = "permission";
+
+  /**
+   * Default parameter value.
+   */
   public static final String DEFAULT = FSUtils.DEFAULT_PERMISSION;
 
-  public static final Pattern PERMISSION_PATTERN =
+
+  /**
+   * Symbolic Unix permissions regular expression pattern.
+   */
+  private static final Pattern PERMISSION_PATTERN =
     Pattern.compile(DEFAULT + "|(-[-r][-w][-x][-r][-w][-x][-r][-w][-x])");
 
+  /**
+   * Constructor.
+   *
+   * @param permission parameter value.
+   */
   public PermissionParam(String permission) {
     super(NAME, permission.toLowerCase(), PERMISSION_PATTERN);
   }

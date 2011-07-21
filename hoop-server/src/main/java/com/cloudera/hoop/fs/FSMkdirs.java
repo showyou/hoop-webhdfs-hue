@@ -22,16 +22,33 @@ import org.json.simple.JSONObject;
 
 import java.io.IOException;
 
+/**
+ * Executor that performs a mkdirs Hadoop files system operation.
+ */
 public class FSMkdirs implements Hadoop.FileSystemExecutor<JSONObject> {
 
   private Path path;
   private String permission;
 
+  /**
+   * Creates a mkdirs executor.
+   *
+   * @param path directory path to create.
+   * @param permission permission to use.
+   */
   public FSMkdirs(String path, String permission) {
     this.path = new Path(path);
     this.permission = permission;
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return <code>true</code> if the mkdirs operation was successful,
+   * <code>false</code> otherwise.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public JSONObject execute(FileSystem fs) throws IOException {
     FsPermission fsPermission = FSUtils.getPermission(permission);

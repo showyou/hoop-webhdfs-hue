@@ -23,13 +23,28 @@ import org.apache.hadoop.fs.Path;
 import java.io.IOException;
 import java.util.Map;
 
+/**
+ * Executor that performs a file-status Hadoop files system operation.
+ */
 public class FSFileStatus implements Hadoop.FileSystemExecutor<Map> {
   private Path path;
 
+  /**
+   * Creates a file-status executor.
+   *
+   * @param path the path to retrieve the status.
+   */
   public FSFileStatus(String path) {
     this.path = new Path(path);
   }
 
+  /**
+   * Executes the filesystem operation.
+   *
+   * @param fs filesystem instance to use.
+   * @return a Map object (JSON friendly) with the file status.
+   * @throws IOException thrown if an IO error occured.
+   */
   @Override
   public Map execute(FileSystem fs) throws IOException {
     FileStatus status = fs.getFileStatus(path);

@@ -21,9 +21,24 @@ import javax.servlet.FilterConfig;
 import java.util.Map;
 import java.util.Properties;
 
+/**
+ * Subclass of Alfredo's <code>AuthenticationFilter</code> that obtains its configuration
+ * from Hoop's server configuration.
+ */
 public class AuthFilter extends AuthenticationFilter {
   private static final String CONF_PREFIX = "hoop.authentication.";
 
+  /**
+   * Returns the Alfredo configuration from Hoop's configuration.
+   * <p/>
+   * It returns all Hoop's configuration properties prefixed with
+   * <code>hoop.authentication</code>. The <code>hoop.authentication</code>
+   * prefix is removed from the returned property names.
+   *
+   * @param configPrefix parameter not used.
+   * @param filterConfig parameter not used.
+   * @return Alfredo configuration read from Hoop's configuration.
+   */
   @Override
   protected Properties getConfiguration(String configPrefix, FilterConfig filterConfig) {
     Properties props = new Properties();
