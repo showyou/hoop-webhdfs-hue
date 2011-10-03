@@ -1,6 +1,9 @@
 build
 target
 downloads
+.project
+.settings
+.classpath
 *.iml
 *.iws
 *.ipr
