@@ -23,6 +23,13 @@
 
 Hoop, Hadoop HDFS over HTTP - Documentation Sets ${project.version}
 
+   <<Hoop has been contributed to Apache Hadoop and it is available as part of 
+   Hadoop 0.23.x releases.>>
+
+   <<For details please refer to the {{{http://hadoop.apache.org/}Apache Hadoop site}}.>>
+
+* Summary
+
   Enough reading, take me to the {{{ServerSetup.html}Hoop setup instructions}}.
 
   Hoop is a server that provides a REST HTTP gateway supporting all HDFS
