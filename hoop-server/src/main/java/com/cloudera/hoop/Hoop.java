@@ -74,6 +74,7 @@ import java.util.Map;
 @Path("")
 public class Hoop {
   private static Logger AUDIT_LOG = LoggerFactory.getLogger("hoopaudit");
+  private static final String SERVICE_VERSION =  "v1";
 
   /**
    * Returns an emtpy plain text response when a favicon is requested.
@@ -106,7 +107,7 @@ public class Hoop {
    * exceptions are handled by {@link HoopExceptionProvider}.
    */
   @GET
-  @Path("/")
+  @Path("/" + SERVICE_VERSION)
   @Produces(MediaType.APPLICATION_JSON)
   public Response root(@Context Principal user,
                        @QueryParam(GetOpParam.NAME) @DefaultValue(GetOpParam.DEFAULT) GetOpParam op,
@@ -240,7 +241,8 @@ public class Hoop {
         response = Response.ok(entity).type(MediaType.APPLICATION_OCTET_STREAM).build();
         break;
       }
-      case STATUS: {
+      case GETFILESTATUS: {
+      //case STATUS: {
         FSFileStatus command = new FSFileStatus(path.value());
         Map json = fsExecute(user, doAs.value(), command);
         AUDIT_LOG.info("[{}]", path);

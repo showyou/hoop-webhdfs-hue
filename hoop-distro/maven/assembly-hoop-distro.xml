@@ -83,7 +83,7 @@
     <file>
       <source>${basedir}/../hoop-webapp/target/hoop-webapp-${project.version}.war</source>
       <outputDirectory>/tomcat/webapps</outputDirectory>
-      <destName>ROOT.war</destName>
+      <destName>webhdfs.war</destName>
     </file>
   </files>
 </assembly>

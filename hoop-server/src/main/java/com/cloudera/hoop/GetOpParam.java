@@ -25,7 +25,7 @@ public class GetOpParam extends EnumParam<GetOpParam.Values> {
    * Get operations.
    */
   public enum Values {
-    DATA, STATUS, LIST, HOMEDIR, INSTRUMENTATION
+    DATA, STATUS, LIST, HOMEDIR, INSTRUMENTATION, GETFILESTATUS
   }
 
   /**
