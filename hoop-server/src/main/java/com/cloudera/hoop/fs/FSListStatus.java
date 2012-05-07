@@ -20,15 +20,15 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.json.simple.JSONArray;
 
 import java.io.IOException;
 import java.util.regex.Pattern;
+import java.util.Map;
 
 /**
  * Executor that performs a list-status Hadoop files system operation.
  */
-public class FSListStatus implements Hadoop.FileSystemExecutor<JSONArray>, PathFilter {
+public class FSListStatus implements Hadoop.FileSystemExecutor<Map>, PathFilter {
   private Path path;
   private PathFilter filter;
 
@@ -47,12 +47,12 @@ public class FSListStatus implements Hadoop.FileSystemExecutor<JSONArray>, PathF
    * Executes the filesystem operation.
    *
    * @param fs filesystem instance to use.
-   * @return a JSONArray with the file status of the directory
+   * @return a Map with the file status of the directory
    * contents.
    * @throws IOException thrown if an IO error occured.
    */
   @Override
-  public JSONArray execute(FileSystem fs) throws IOException {
+  public Map execute(FileSystem fs) throws IOException {
     FileStatus[] status = fs.listStatus(path, filter);
     String httpBaseUrl = HoopServer.get().getBaseUrl();
     return FSUtils.fileStatusToJSON(status, httpBaseUrl);

@@ -33,7 +33,36 @@ public class FSUtils {
    * Constant for the default permission string ('default').
    */
   public static final String DEFAULT_PERMISSION = "default";
+  
+  /**
+   * FSFile System's constant value
+   */
+  public static final String FILE_STATUSES_JSON = "FileStatuses";
+  public static final String FILE_STATUS_JSON = "FileStatus";
+  public static final String PATH_SUFFIX_JSON = "pathSuffix";
+  public static final String TYPE_JSON = "type";
+  public static final String LENGTH_JSON = "length";
+  public static final String OWNER_JSON = "owner";
+  public static final String GROUP_JSON = "group";
+  public static final String PERMISSION_JSON = "permission";
+  public static final String ACCESS_TIME_JSON = "accessTime";
+  public static final String MODIFICATION_JSON = "modificationTime";
+  public static final String BLOCK_SIZE_JSON_JSON = "blockSize";
+  public static final String REPLICATION_JSON = "replication";
 
+  public static enum FILE_TYPE {
+    FILE, DIRECTORY, SYMLINK;
+
+    public static FILE_TYPE getType(FileStatus fileStatus) {
+        if (fileStatus.isDir()) {
+            return DIRECTORY;
+        }
+        return FILE;
+        //
+        // throw IllegalArgumentException("Could not detemine filetype for: "+
+        //                              fileStatus.getPath());
+    }
+  }
   /**
    * Converts a Unix permission symbolic representation
    * (i.e. -rwxr--r--) into a Hadoop permission.
@@ -94,20 +123,30 @@ public class FSUtils {
    * @return The JSON representation of the file status.
    */
   @SuppressWarnings("unchecked")
-  public static Map fileStatusToJSON(FileStatus status, String hoopBaseUrl) {
+  public static Map fileStatusToJSONRaw(FileStatus status, String hoopBaseUrl) {
     Map json = new LinkedHashMap();
-    json.put("path", convertPathToHoop(status.getPath(), hoopBaseUrl).toString());
-    json.put("isDir", status.isDir());
-    json.put("len", status.getLen());
-    json.put("owner", status.getOwner());
-    json.put("group", status.getGroup());
-    json.put("permission", permissionToString(status.getPermission()));
-    json.put("accessTime", status.getAccessTime());
-    json.put("modificationTime", status.getModificationTime());
-    json.put("blockSize", status.getBlockSize());
-    json.put("replication", status.getReplication());
+    json.put(PATH_SUFFIX_JSON, convertPathToHoop(status.getPath(), hoopBaseUrl).toString());
+    json.put(TYPE_JSON, FILE_TYPE.getType(status).toString());
+    json.put(LENGTH_JSON, status.getLen());
+    json.put(OWNER_JSON, status.getOwner());
+    json.put(GROUP_JSON, status.getGroup());
+    json.put(PERMISSION_JSON, permissionToString(status.getPermission()));
+    json.put(ACCESS_TIME_JSON, status.getAccessTime());
+    json.put(MODIFICATION_JSON, status.getModificationTime());
+    json.put(BLOCK_SIZE_JSON_JSON, status.getBlockSize());
+    json.put(REPLICATION_JSON, status.getReplication());
     return json;
   }
+  
+
+  @SuppressWarnings("unchecked")
+  public static Map fileStatusToJSON(FileStatus status, String hoopBaseUrl) {
+    Map response = new LinkedHashMap();
+    response.put(FILE_STATUS_JSON, fileStatusToJSONRaw(status, hoopBaseUrl));
+
+    return response;
+  }
+
 
   /**
    * Converts a Hadoop <code>FileStatus</code> array into a JSON array
@@ -120,14 +159,19 @@ public class FSUtils {
    * @return The JSON representation of the file status array.
    */
   @SuppressWarnings("unchecked")
-  public static JSONArray fileStatusToJSON(FileStatus[] status, String hoopBaseUrl) {
+  public static Map fileStatusToJSON(FileStatus[] status, String hoopBaseUrl) {
     JSONArray json = new JSONArray();
     if (status != null) {
       for (FileStatus s : status) {
         json.add(fileStatusToJSON(s, hoopBaseUrl));
       }
     }
-    return json;
+    Map temp = new LinkedHashMap();
+    Map response = new LinkedHashMap();
+    temp.put(FILE_STATUS_JSON, json);
+    response.put(FILE_STATUSES_JSON, temp);
+
+    return response;
   }
 
   /**

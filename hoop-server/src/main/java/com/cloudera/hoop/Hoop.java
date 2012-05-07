@@ -251,7 +251,7 @@ public class Hoop {
       }
       case LIST: {
         FSListStatus command = new FSListStatus(path.value(), filter.value());
-        JSONArray json = fsExecute(user, doAs.value(), command);
+        Map json = fsExecute(user, doAs.value(), command);
         if (filter.value() == null) {
           AUDIT_LOG.info("[{}]", path);
         }
