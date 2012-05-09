@@ -124,7 +124,8 @@ public class FSUtils {
   @SuppressWarnings("unchecked")
   public static Map fileStatusToJSONRaw(FileStatus status, String hoopBaseUrl) {
     Map json = new LinkedHashMap();
-    json.put(PATH_SUFFIX_JSON, convertPathToHoop(status.getPath(), hoopBaseUrl).toString());
+    // json.put(PATH_SUFFIX_JSON, convertPathToHoop(status.getPath(), hoopBaseUrl).toString());
+    json.put(PATH_SUFFIX_JSON, convertPathToHoop(status.getPath(), "").toString());
     json.put(TYPE_JSON, FILE_TYPE.getType(status).toString());
     json.put(LENGTH_JSON, status.getLen());
     json.put(OWNER_JSON, status.getOwner());
