@@ -249,7 +249,9 @@ public class Hoop {
         response = Response.ok(json).type(MediaType.APPLICATION_JSON).build();
         break;
       }
-      case LIST: {
+      // case LIST: {
+      case LISTSTATUS: {
+
         FSListStatus command = new FSListStatus(path.value(), filter.value());
         Map json = fsExecute(user, doAs.value(), command);
         if (filter.value() == null) {
