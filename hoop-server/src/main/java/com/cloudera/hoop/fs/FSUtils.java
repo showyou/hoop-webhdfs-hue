@@ -162,7 +162,7 @@ public class FSUtils {
     JSONArray json = new JSONArray();
     if (status != null) {
       for (FileStatus s : status) {
-        json.add(fileStatusToJSON(s, hoopBaseUrl));
+        json.add(fileStatusToJSONRaw(s, hoopBaseUrl));
       }
     }
     Map temp = new LinkedHashMap();
