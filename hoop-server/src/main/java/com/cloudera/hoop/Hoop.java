@@ -229,7 +229,7 @@ public class Hoop {
     path.makeAbsolute();
     MDC.put("op", op.value().name());
     switch (op.value()) {
-      case DATA: {
+      case OPEN: {
         //Invoking the command directly using an unmanaged FileSystem that is released by the
         //FileSystemReleaseFilter
         FSOpen command = new FSOpen(path.value());
