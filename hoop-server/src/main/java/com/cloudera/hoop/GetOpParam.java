@@ -36,7 +36,7 @@ public class GetOpParam extends EnumParam<GetOpParam.Values> {
   /**
    * Default parameter value.
    */
-  public static final String DEFAULT = "data";
+  public static final String DEFAULT = "open";
 
   /**
    * Constructor.
