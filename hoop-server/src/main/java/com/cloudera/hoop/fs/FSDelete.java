@@ -50,7 +50,7 @@ public class FSDelete implements Hadoop.FileSystemExecutor<JSONObject> {
   @Override
   public JSONObject execute(FileSystem fs) throws IOException {
     boolean deleted = fs.delete(path, recursive);
-    return FSUtils.toJSON("delete", deleted);
+    return FSUtils.toJSON("boolean", deleted);
   }
 
 }

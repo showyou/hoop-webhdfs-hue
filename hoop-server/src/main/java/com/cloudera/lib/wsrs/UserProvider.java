@@ -34,7 +34,7 @@ public class UserProvider extends AbstractHttpContextInjectable<Principal> imple
 
   public static final String USER_NAME_PARAM = "user.name";
 
-  public static final Pattern USER_PATTERN = Pattern.compile("[_a-zA-Z0-9]+");
+  public static final Pattern USER_PATTERN = Pattern.compile("[_a-zA-Z0-9\\.]+");
 
   private static class UserParam extends StringParam {
 
